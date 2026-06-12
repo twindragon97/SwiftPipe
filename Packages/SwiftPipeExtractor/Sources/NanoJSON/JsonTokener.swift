@@ -281,8 +281,11 @@ final class JsonTokener {
     }
 
     /// Peek one char ahead, don't advance, returns -1 on end of input.
+    /// Bounds-checked beyond Java's eof flag: consumeKeyword advances index
+    /// manually, so index may reach bufferLength with eof still false (Java
+    /// reads harmless slack from its 32K buffer there; Swift arrays trap).
     private func peekChar() -> Int {
-        eof ? -1 : Int(buffer[index])
+        (eof || index >= bufferLength) ? -1 : Int(buffer[index])
     }
 
     /// Returns how many of the next n chars are available in the buffer.
@@ -291,8 +294,10 @@ final class JsonTokener {
     }
 
     /// Advance one character ahead, or return -1 on end of input.
+    /// Bounds-checked beyond Java's eof flag (see peekChar).
     private func advanceChar() -> Int {
-        if eof {
+        if eof || index >= bufferLength {
+            eof = true
             return -1
         }
 
