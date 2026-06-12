@@ -1,0 +1,5 @@
+# Allowlist of mock directories to sync from upstream/NewPipeExtractor's
+# test resources (extractor/src/test/resources/mocks/v1) into this test
+# bundle. One sub-path per line; lines starting with # are ignored.
+# Add a line here whenever a test class that uses recorded mocks is ported,
+# then run scripts/sync-mocks.sh.

@@ -51,6 +51,11 @@ let package = Package(
                 "SwiftPipeExtractorJS",
                 "NanoJSON",
                 "TimeAgoParser",
+            ],
+            resources: [
+                // Recorded mocks synced selectively from upstream via
+                // scripts/sync-mocks.sh (see Resources/mocks-manifest.txt).
+                .copy("Resources/mocks")
             ]
         ),
     ]

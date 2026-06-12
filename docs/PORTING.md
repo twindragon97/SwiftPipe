@@ -33,10 +33,18 @@ issue whenever TeamNewPipe publishes a new release.
      (Apple-only target), injected at app startup.
    - `Downloader`/`Request`/`Response` → mirrored protocol; the app provides a
      URLSession implementation (mirror of Android's `DownloaderImpl`).
-4. Checked exceptions → `throws` with mirrored error enums under `exceptions/`.
-   `@Nullable` → optionals. Regex stays behind the mirrored `Parser.swift` so
-   call sites look like the Java.
-5. **Deviations must be documented** in the file header below the `Mirrors:`
+4. Checked exceptions → a mirrored **class hierarchy** under `exceptions/`
+   (`ExtractionException` base), so `catch let e as ExtractionException`
+   matches subclasses like Java. `@Nullable` → optionals. Regex stays behind
+   the mirrored `Parser.swift` so call sites look like the Java.
+5. **Mechanical call-site adaptations** (apply uniformly):
+   - Java accessor methods on data classes → Swift properties:
+     `request.url()` → `request.url`.
+   - `NewPipe.init(...)` → `NewPipe.initialize(...)` (`init` is reserved).
+   - `byte[]` → `Data`; `.getBytes(StandardCharsets.UTF_8)` → `.data(using: .utf8)`.
+   - Unchecked Java exceptions (programmer error) → `preconditionFailure`
+     with the same message.
+6. **Deviations must be documented** in the file header below the `Mirrors:`
    line with `// Deviation:` and one-line justification. Keep them rare.
 
 ## Tests
@@ -45,10 +53,20 @@ Mirrors of upstream's test classes run against the recorded mocks in
 `Packages/SwiftPipeExtractor/Tests/SwiftPipeExtractorTests/Resources/mocks/v1`
 (copied verbatim from upstream via `scripts/sync-mocks.sh`).
 
-- `DOWNLOADER=MOCK` (CI default): deterministic, uses recorded responses.
+- `DOWNLOADER=MOCK` (the default, unlike upstream's REAL): deterministic,
+  uses recorded responses from the test bundle.
 - `DOWNLOADER=REAL`: live network (use locally to diagnose breakage).
-- `DOWNLOADER=RECORDING`: wraps the real downloader and rewrites the mock
-  files (run via the manual re-record workflow job, review the diff in a PR).
+- `DOWNLOADER=RECORDING` (or `REC`): wraps the real downloader and rewrites
+  the mock files. Requires `SWIFTPIPE_MOCKS_DIR` pointing at
+  `Packages/SwiftPipeExtractor/Tests/SwiftPipeExtractorTests/Resources/mocks/v1`
+  in the source tree (the test bundle copy is read-only).
+
+Java derives mock paths from the test class FQCN; Swift has no packages, so
+each ported test class passes its mock sub-path to
+`DownloaderFactory.getDownloader("org/schabi/newpipe/extractor/...")` and the
+same path goes into `Resources/mocks-manifest.txt` so `sync-mocks.sh` vendors
+that directory (the full upstream corpus is ~180 MB; only what ported tests
+need is committed).
 
 JS-dependent suites are guarded by `#if canImport(JavaScriptCore)` and only run
 on Apple platforms; the Linux CI job skips them automatically.

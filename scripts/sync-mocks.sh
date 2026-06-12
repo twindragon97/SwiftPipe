@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# Copies upstream extractor test resources (recorded mocks, takeout fixtures)
-# into the Swift test bundle. Run after updating the NewPipeExtractor submodule.
+# Selectively copies upstream extractor recorded mocks into the Swift test
+# bundle, driven by the allowlist in Resources/mocks-manifest.txt. The full
+# upstream corpus is ~180 MB, so only directories needed by ported test
+# classes are vendored. Run after updating the NewPipeExtractor submodule or
+# the manifest.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
 SRC="upstream/NewPipeExtractor/extractor/src/test/resources"
 DST="Packages/SwiftPipeExtractor/Tests/SwiftPipeExtractorTests/Resources"
+MANIFEST="$DST/mocks-manifest.txt"
 
 if [ ! -d "$SRC" ]; then
   echo "error: $SRC not found — initialize submodules first:" >&2
@@ -14,10 +18,25 @@ if [ ! -d "$SRC" ]; then
   exit 1
 fi
 
-rm -rf "$DST/mocks"
-mkdir -p "$DST"
-cp -R "$SRC/mocks" "$DST/mocks"
-# Subscription import fixtures (YouTube takeout, etc.)
+synced=0
+while IFS= read -r line; do
+  # Skip comments and blank lines
+  case "$line" in ''|\#*) continue ;; esac
+
+  src_dir="$SRC/mocks/v1/$line"
+  dst_dir="$DST/mocks/v1/$line"
+  if [ ! -d "$src_dir" ]; then
+    echo "error: manifest entry not found upstream: $line" >&2
+    exit 1
+  fi
+  rm -rf "$dst_dir"
+  mkdir -p "$dst_dir"
+  cp -R "$src_dir/." "$dst_dir/"
+  echo "synced: $line"
+  synced=$((synced + 1))
+done < "$MANIFEST"
+
+# Subscription import fixtures (YouTube takeout, etc.) are small; copy always
 find "$SRC" -maxdepth 1 -name 'youtube_takeout_import_test*' -exec cp {} "$DST/" \;
 
-echo "Synced mocks into $DST"
+echo "Done ($synced mock directories)."
