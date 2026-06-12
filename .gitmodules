@@ -1,0 +1,8 @@
+[submodule "upstream/NewPipeExtractor"]
+	path = upstream/NewPipeExtractor
+	url = https://github.com/TeamNewPipe/NewPipeExtractor
+	shallow = true
+[submodule "upstream/NewPipe"]
+	path = upstream/NewPipe
+	url = https://github.com/TeamNewPipe/NewPipe
+	shallow = true
