@@ -1,6 +1,4 @@
 // Mirrors: extractor/src/main/java/org/schabi/newpipe/extractor/linkhandler/SearchQueryHandlerFactory.java @ v0.26.3
-//
-// See LinkHandlerFactory.swift for the covariant-return deviation.
 
 open class SearchQueryHandlerFactory: ListLinkHandlerFactory {
     ///////////////////////////////////
@@ -19,10 +17,10 @@ open class SearchQueryHandlerFactory: ListLinkHandlerFactory {
         getSearchString(url)
     }
 
-    public func fromQuery(
+    public override func fromQuery(
         _ query: String, _ contentFilter: [String], _ sortFilter: String
     ) throws -> SearchQueryHandler {
-        SearchQueryHandler(try super.fromQuery(query, contentFilter, sortFilter) as ListLinkHandler)
+        SearchQueryHandler(try super.fromQuery(query, contentFilter, sortFilter))
     }
 
     public func fromQuery(_ query: String) throws -> SearchQueryHandler {

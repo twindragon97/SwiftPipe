@@ -1,7 +1,7 @@
 // Mirrors: extractor/src/main/java/org/schabi/newpipe/extractor/linkhandler/SearchQueryHandler.java @ v0.26.3
 
 open class SearchQueryHandler: ListLinkHandler {
-    public init(
+    public override init(
         _ originalUrl: String,
         _ url: String,
         _ searchString: String,

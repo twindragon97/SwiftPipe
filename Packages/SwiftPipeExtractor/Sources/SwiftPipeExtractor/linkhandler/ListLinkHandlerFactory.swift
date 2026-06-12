@@ -1,8 +1,7 @@
 // Mirrors: extractor/src/main/java/org/schabi/newpipe/extractor/linkhandler/ListLinkHandlerFactory.java @ v0.26.3
 //
-// See LinkHandlerFactory.swift for the covariant-return deviation: the
-// from* methods here are overloads (not overrides) that differ in return
-// type from the inherited ones.
+// Swift supports Java's covariant return-type overrides (fromUrl returning
+// ListLinkHandler here) directly.
 
 open class ListLinkHandlerFactory: LinkHandlerFactory {
     ///////////////////////////////////
@@ -25,22 +24,22 @@ open class ListLinkHandlerFactory: LinkHandlerFactory {
     // Logic
     ///////////////////////////////////
 
-    public func fromUrl(_ url: String) throws -> ListLinkHandler {
+    public override func fromUrl(_ url: String) throws -> ListLinkHandler {
         let polishedUrl = Utils.followGoogleRedirectIfNeeded(url)
         let baseUrl = try Utils.getBaseUrl(polishedUrl)
         return try fromUrl(polishedUrl, baseUrl)
     }
 
-    public func fromUrl(_ url: String, _ baseUrl: String) throws -> ListLinkHandler {
-        ListLinkHandler(try super.fromUrl(url, baseUrl) as LinkHandler)
+    public override func fromUrl(_ url: String, _ baseUrl: String) throws -> ListLinkHandler {
+        ListLinkHandler(try super.fromUrl(url, baseUrl))
     }
 
-    public func fromId(_ id: String) throws -> ListLinkHandler {
-        ListLinkHandler(try super.fromId(id) as LinkHandler)
+    public override func fromId(_ id: String) throws -> ListLinkHandler {
+        ListLinkHandler(try super.fromId(id))
     }
 
-    public func fromId(_ id: String, _ baseUrl: String) throws -> ListLinkHandler {
-        ListLinkHandler(try super.fromId(id, baseUrl) as LinkHandler)
+    public override func fromId(_ id: String, _ baseUrl: String) throws -> ListLinkHandler {
+        ListLinkHandler(try super.fromId(id, baseUrl))
     }
 
     public func fromQuery(

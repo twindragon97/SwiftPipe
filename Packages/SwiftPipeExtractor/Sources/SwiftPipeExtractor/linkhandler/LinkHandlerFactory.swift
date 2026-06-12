@@ -1,11 +1,8 @@
 // Mirrors: extractor/src/main/java/org/schabi/newpipe/extractor/linkhandler/LinkHandlerFactory.java @ v0.26.3
 //
-// Deviation: Java's covariant return-type overrides (ListLinkHandlerFactory
-// re-declares fromUrl returning ListLinkHandler) are not supported by Swift;
-// the subclasses declare same-named overloads differing in return type, which
-// the call sites disambiguate by context. The from* logic itself is only
-// implemented in these factory base classes, so dynamic dispatch is preserved
-// through the open getId/getUrl/onAcceptUrl hooks.
+// Java's covariant return-type overrides (ListLinkHandlerFactory re-declares
+// fromUrl returning ListLinkHandler) port directly: Swift supports covariant
+// overrides for class subtypes.
 
 open class LinkHandlerFactory {
     public init() {}
