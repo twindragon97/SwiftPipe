@@ -6,3 +6,7 @@
 	path = upstream/NewPipe
 	url = https://github.com/TeamNewPipe/NewPipe
 	shallow = true
+[submodule "upstream/nanojson"]
+	path = upstream/nanojson
+	url = https://github.com/TeamNewPipe/nanojson
+	shallow = true
