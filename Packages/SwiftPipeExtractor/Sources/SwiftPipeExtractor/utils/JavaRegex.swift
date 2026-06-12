@@ -31,6 +31,11 @@ public final class Pattern {
     public func matcher(_ input: String) -> Matcher {
         Matcher(regex, input)
     }
+
+    /// Java Pattern.quote: a literal pattern matching the given string.
+    public static func quote(_ s: String) -> String {
+        NSRegularExpression.escapedPattern(for: s)
+    }
 }
 
 public final class Matcher {
