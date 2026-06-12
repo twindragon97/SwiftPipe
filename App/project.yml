@@ -1,0 +1,67 @@
+name: SwiftPipe
+options:
+  bundleIdPrefix: app.swiftpipe
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+packages:
+  SwiftPipeExtractor:
+    path: ../Packages/SwiftPipeExtractor
+
+settings:
+  base:
+    MARKETING_VERSION: 0.1.0
+    CURRENT_PROJECT_VERSION: 1
+    SWIFT_VERSION: "5.9"
+
+targets:
+  SwiftPipe:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+    dependencies:
+      - package: SwiftPipeExtractor
+        product: SwiftPipeExtractor
+      - package: SwiftPipeExtractor
+        product: SwiftPipeExtractorJS
+    info:
+      path: Resources/Info.plist
+      properties:
+        CFBundleDisplayName: SwiftPipe
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+        UIBackgroundModes:
+          - audio
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        ITSAppUsesNonExemptEncryption: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        "UISupportedInterfaceOrientations~ipad":
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.swiftpipe.ios
+        # Universal app: iPhone (1) + iPad (2). No UIRequiresFullScreen, so the
+        # app supports Split View / Slide Over / Stage Manager on iPadOS.
+        TARGETED_DEVICE_FAMILY: "1,2"
+
+schemes:
+  SwiftPipe:
+    build:
+      targets:
+        SwiftPipe: all
+    run:
+      config: Debug
+    archive:
+      config: Release

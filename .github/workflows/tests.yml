@@ -1,0 +1,36 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # Extractor tests default to recorded mocks so CI stays deterministic.
+  # (Upstream defaults to REAL; we flip it. Use the re-record job to refresh.)
+  DOWNLOADER: MOCK
+
+jobs:
+  linux:
+    name: Extractor tests (Linux)
+    runs-on: ubuntu-latest
+    container: swift:6.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run extractor tests (JS suites auto-skip without JavaScriptCore)
+        run: swift test --package-path Packages/SwiftPipeExtractor
+
+  macos:
+    name: All package tests (macOS)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extractor (including JavaScriptCore suites)
+        run: swift test --package-path Packages/SwiftPipeExtractor
+      - name: Database
+        run: swift test --package-path Packages/SwiftPipeDatabase
+      - name: Giga (downloads + muxers)
+        run: swift test --package-path Packages/SwiftPipeGiga
+      - name: Player core
+        run: swift test --package-path Packages/SwiftPipePlayer

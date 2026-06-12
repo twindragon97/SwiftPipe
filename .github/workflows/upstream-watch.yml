@@ -1,0 +1,55 @@
+name: Upstream watch
+
+on:
+  schedule:
+    # Daily at 04:17 UTC.
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: Check TeamNewPipe releases
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compare upstream releases with pinned versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for repo in NewPipe NewPipeExtractor; do
+            latest=$(gh api "repos/TeamNewPipe/${repo}/releases/latest" --jq .tag_name)
+            pinned=$(jq -r --arg r "$repo" '.[$r]' upstream-versions.json)
+            echo "${repo}: pinned=${pinned} latest=${latest}"
+            if [ "$latest" = "$pinned" ]; then
+              continue
+            fi
+
+            title="Upstream release: ${repo} ${latest}"
+            existing=$(gh issue list --search "in:title \"$title\"" --state all \
+              --json number --jq '.[].number' | head -1)
+            if [ -n "$existing" ]; then
+              echo "Issue already exists (#${existing}), skipping."
+              continue
+            fi
+
+            body=$(cat <<EOF
+          Upstream published **${repo} ${latest}** (currently pinned: \`${pinned}\`).
+
+          - Diff: https://github.com/TeamNewPipe/${repo}/compare/${pinned}...${latest}
+          - Release notes: https://github.com/TeamNewPipe/${repo}/releases/tag/${latest}
+
+          Port checklist:
+          - [ ] Review the diff and find which changed files have Swift mirrors: \`git diff --name-only ${pinned}...${latest}\` in the submodule, piped to \`python3 scripts/port-status.py --stdin\`
+          - [ ] Replicate the changes in the mirrored Swift files and update their \`// Mirrors:\` headers to ${latest}
+          - [ ] Refresh affected test mocks if request/response shapes changed (re-record job)
+          - [ ] Update the \`upstream/${repo}\` submodule and \`upstream-versions.json\` to ${latest}
+          EOF
+            )
+            gh issue create --title "$title" --label upstream-sync --body "$body"
+          done

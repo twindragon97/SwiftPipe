@@ -1,0 +1,21 @@
+# Build output
+.build/
+build/
+dist/
+DerivedData/
+
+# XcodeGen output (generated in CI, never committed)
+*.xcodeproj
+App/Resources/Info.plist
+
+# Xcode user state
+xcuserdata/
+.swiftpm/
+
+# Packaging
+*.ipa
+Payload/
+
+# OS noise
+.DS_Store
+Thumbs.db
