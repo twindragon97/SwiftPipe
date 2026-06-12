@@ -36,13 +36,14 @@ open class Info: CustomStringConvertible {
         self.name = name
     }
 
-    public convenience init(_ serviceId: Int, _ linkHandler: LinkHandler, _ name: String) {
-        self.init(
-            serviceId,
-            linkHandler.getId(),
-            linkHandler.getUrl(),
-            linkHandler.getOriginalUrl(),
-            name)
+    // Designated (not convenience) so subclasses can delegate to it via
+    // super.init, mirroring Java constructor chaining.
+    public init(_ serviceId: Int, _ linkHandler: LinkHandler, _ name: String) {
+        self.serviceId = serviceId
+        self.id = linkHandler.getId()
+        self.url = linkHandler.getUrl()
+        self.originalUrl = linkHandler.getOriginalUrl()
+        self.name = name
     }
 
     public var description: String {
