@@ -92,7 +92,7 @@ final class TimeAgoTests: XCTestCase {
     private let now = Date(timeIntervalSince1970: 1_700_000_000)
 
     func testParsesRelativePhrases() throws {
-        let parser = TimeAgoPatternsManager.getTimeAgoParserFor(Localization("en", "GB"), now)
+        let parser = TimeAgoPatternsManager.getTimeAgoParserFor(Localization("en"), now)
         let weeks = try XCTUnwrap(parser).parse("3 weeks ago")
         XCTAssertTrue(weeks.isApproximation())
         XCTAssertLessThan(weeks.getInstant(), now)
@@ -115,6 +115,9 @@ final class TimeAgoTests: XCTestCase {
 
     func testUnsupportedLocalizationReturnsNil() {
         XCTAssertNil(TimeAgoPatternsManager.getTimeAgoParserFor(Localization("zz"), now))
+        // Like Java: "en_GB" has no dedicated pattern class; the
+        // language-only fallback lives in StreamingService.getTimeAgoParser.
+        XCTAssertNil(TimeAgoPatternsManager.getTimeAgoParserFor(Localization("en", "GB"), now))
     }
 
     func testDateWrapperParsesIso8601() throws {
