@@ -78,7 +78,9 @@ public enum YoutubeParsingHelper {
     private static var consentAccepted = false
 
     public static func isGoogleURL(_ url: String) -> Bool {
-        let cachedUrl = extractCachedUrlIfNeeded(url)
+        // Annotate as String: assigning an IUO return to an inferred let
+        // would widen to String?. url is non-nil, so the result is non-nil.
+        let cachedUrl: String = extractCachedUrlIfNeeded(url)
         guard let u = URL(string: cachedUrl), let host = u.host else {
             return false
         }
