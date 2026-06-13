@@ -18,7 +18,7 @@ final class DownloaderImpl: Downloader {
 
     private let session: URLSession
 
-    private init() {
+    private override init() {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 30
         configuration.httpCookieStorage = nil
