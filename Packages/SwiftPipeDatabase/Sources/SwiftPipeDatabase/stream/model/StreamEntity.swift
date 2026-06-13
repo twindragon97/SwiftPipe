@@ -56,6 +56,35 @@ public struct StreamEntity: FetchableRecord, MutablePersistableRecord, Equatable
         self.isUploadDateApproximation = isUploadDateApproximation
     }
 
+    /// Builds a row from a search/list item. Mirror of the StreamEntity
+    /// secondary constructor that takes a StreamInfoItem.
+    ///
+    /// Deviation: NewPipe stores `thumbnail_url` via ImageStrategy (a single URL
+    /// chosen by the user's preferred image-quality setting). That setting and
+    /// strategy are not ported yet, so we store the highest-resolution thumbnail
+    /// URL. thumbnail_url is a non-authoritative cached value, so this does not
+    /// affect Android's ability to import the database.
+    public init(item: StreamInfoItem) {
+        self.init(
+            serviceId: item.getServiceId(),
+            url: item.getUrl(),
+            title: item.getName(),
+            streamType: item.getStreamType(),
+            duration: item.getDuration(),
+            uploader: item.getUploaderName() ?? "",
+            uploaderUrl: item.getUploaderUrl(),
+            thumbnailUrl: Self.bestThumbnailUrl(item.getThumbnails()),
+            viewCount: item.getViewCount(),
+            textualUploadDate: item.getTextualUploadDate(),
+            uploadDate: item.getUploadDate()?.offsetDateTime(),
+            isUploadDateApproximation: item.getUploadDate()?.isApproximation())
+    }
+
+    /// Highest-resolution thumbnail URL, or nil when there are none.
+    static func bestThumbnailUrl(_ images: [Image]) -> String? {
+        images.max { $0.getHeight() < $1.getHeight() }?.getUrl()
+    }
+
     public init(row: Row) {
         uid = row["uid"]
         serviceId = row["service_id"]
