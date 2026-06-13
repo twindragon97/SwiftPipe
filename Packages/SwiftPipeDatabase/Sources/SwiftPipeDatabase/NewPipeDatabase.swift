@@ -39,6 +39,8 @@ public final class NewPipeDatabase {
     public var streamHistoryDAO: StreamHistoryDAO { StreamHistoryDAO(dbWriter) }
     public var searchHistoryDAO: SearchHistoryDAO { SearchHistoryDAO(dbWriter) }
     public var subscriptionDAO: SubscriptionDAO { SubscriptionDAO(dbWriter) }
+    public var playlistDAO: PlaylistDAO { PlaylistDAO(dbWriter) }
+    public var playlistStreamDAO: PlaylistStreamDAO { PlaylistStreamDAO(dbWriter) }
 
     /// Creates the v9 schema on an empty database. A non-empty database with a
     /// different `user_version` is left untouched here — migrating an imported

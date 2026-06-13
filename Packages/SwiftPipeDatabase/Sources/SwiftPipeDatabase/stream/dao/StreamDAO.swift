@@ -62,6 +62,18 @@ public struct StreamDAO {
         return stream.uid
     }
 
+    /// Upserts each stream, returning their uids in order. Mirror of upsertAll.
+    @discardableResult
+    public func upsertAll(_ db: Database, _ streams: [StreamEntity]) throws -> [Int64] {
+        var ids: [Int64] = []
+        ids.reserveCapacity(streams.count)
+        for stream in streams {
+            var stream = stream
+            ids.append(try upsert(db, &stream))
+        }
+        return ids
+    }
+
     /// Deletes streams not referenced by history, a playlist or the feed.
     /// Mirror of StreamDAO.deleteOrphans.
     @discardableResult
