@@ -9,6 +9,10 @@ struct VideoPlayerView: View {
 
     @StateObject private var model = QueuePlayerModel()
 
+    private var qualityBinding: Binding<StreamQuality> {
+        Binding(get: { model.quality }, set: { model.setQuality($0) })
+    }
+
     var body: some View {
         Group {
             switch model.state {
@@ -39,6 +43,19 @@ struct VideoPlayerView: View {
         }
         .navigationTitle(model.currentTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Picker("Quality", selection: qualityBinding) {
+                        ForEach(StreamQuality.allCases) { quality in
+                            Text(quality.label).tag(quality)
+                        }
+                    }
+                } label: {
+                    Label("Quality", systemImage: "slider.horizontal.3")
+                }
+            }
+        }
         .onAppear { model.start(request) }
         // No onDisappear teardown: it also fires when AVPlayerViewController
         // covers this view with its fullscreen presentation. Cleanup happens

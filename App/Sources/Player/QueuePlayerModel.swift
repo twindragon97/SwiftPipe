@@ -28,6 +28,7 @@ final class QueuePlayerModel: ObservableObject {
 
     @Published private(set) var state: State = .idle
     @Published private(set) var currentTitle = ""
+    @Published private(set) var quality: StreamQuality = .auto
 
     let player = AVPlayer()
 
@@ -78,6 +79,13 @@ final class QueuePlayerModel: ObservableObject {
         loadCurrent()
     }
 
+    /// Caps the HLS adaptive resolution for the current item and any future
+    /// queue items.
+    func setQuality(_ quality: StreamQuality) {
+        self.quality = quality
+        player.currentItem?.preferredMaximumResolution = quality.maxResolution
+    }
+
     // Cleanup runs in deinit (when the view is truly popped) rather than in
     // onDisappear: AVPlayerViewController's fullscreen presentation makes
     // SwiftUI fire onDisappear on the underlying view, and tearing the player
@@ -118,7 +126,9 @@ final class QueuePlayerModel: ObservableObject {
                     options: [
                         "AVURLAssetHTTPHeaderFieldsKey": ["User-Agent": Self.iosUserAgent]
                     ])
-                self.player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
+                let playerItem = AVPlayerItem(asset: asset)
+                playerItem.preferredMaximumResolution = self.quality.maxResolution
+                self.player.replaceCurrentItem(with: playerItem)
                 self.player.play()
                 self.state = .playing
             case .failure(let error):
