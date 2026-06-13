@@ -6,10 +6,11 @@
 // next free id.
 
 public enum ServiceList {
-    // TODO(P1-youtube): public static let YouTube = YoutubeService(0)
+    public static let YouTube = YoutubeService(0)
+    // SoundCloud (1), MediaCCC (2), PeerTube (3), Bandcamp (4) land later.
 
     private static let SERVICES: [StreamingService] = [
-        // YouTube, SoundCloud, MediaCCC, PeerTube, Bandcamp
+        YouTube,
     ]
 
     /// All the supported services.
