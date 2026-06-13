@@ -14,10 +14,10 @@ struct ContentView: View {
             }
 
             NavigationStack {
-                HistoryView()
+                LibraryView()
             }
             .tabItem {
-                Label("History", systemImage: "clock.arrow.circlepath")
+                Label("Library", systemImage: "books.vertical")
             }
 
             NavigationStack {
