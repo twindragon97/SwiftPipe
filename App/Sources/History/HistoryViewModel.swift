@@ -31,8 +31,8 @@ final class HistoryViewModel: ObservableObject {
             switch result {
             case .success(let rows):
                 self.state = rows.isEmpty ? .empty : .loaded(rows)
-            case .failure(let message):
-                self.state = .error(message)
+            case .failure(let error):
+                self.state = .error(error.message)
             }
         }
     }
@@ -44,7 +44,7 @@ final class HistoryViewModel: ObservableObject {
         }
     }
 
-    private static func fetch() async -> Result<[HistoryRow], String> {
+    private static func fetch() async -> Result<[HistoryRow], AppError> {
         await withCheckedContinuation { continuation in
             Task.detached(priority: .userInitiated) {
                 do {
@@ -64,7 +64,7 @@ final class HistoryViewModel: ObservableObject {
                     }
                     continuation.resume(returning: .success(rows))
                 } catch {
-                    continuation.resume(returning: .failure(error.localizedDescription))
+                    continuation.resume(returning: .failure(AppError(error)))
                 }
             }
         }

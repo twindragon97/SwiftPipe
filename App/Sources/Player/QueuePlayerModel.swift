@@ -150,7 +150,11 @@ final class QueuePlayerModel: ObservableObject {
                 playerItem.preferredMaximumResolution = self.quality.maxResolution
                 self.player.replaceCurrentItem(with: playerItem)
                 if let resumeMillis = resolved.resumeMillis, resumeMillis > 0 {
-                    self.player.seek(to: CMTime(value: resumeMillis, timescale: 1000))
+                    // Completion-handler overload: avoids the async seek variant
+                    // (we're in an async context) and returns immediately.
+                    self.player.seek(
+                        to: CMTime(value: resumeMillis, timescale: 1000),
+                        toleranceBefore: .zero, toleranceAfter: .zero) { _ in }
                 }
                 self.player.play()
                 self.state = .playing
