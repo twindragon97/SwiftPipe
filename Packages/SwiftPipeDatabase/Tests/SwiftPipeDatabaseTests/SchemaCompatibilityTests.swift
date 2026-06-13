@@ -40,10 +40,20 @@ final class SchemaCompatibilityTests: XCTestCase {
         return try JSONDecoder().decode(RoomSchema.self, from: data).database
     }
 
-    /// Room emits `${TABLE_NAME}` placeholders; it substitutes the actual table
-    /// name before executing, which is exactly what ends up in sqlite_master.
+    /// Turns a Room `createSql` into the exact text SQLite keeps in
+    /// sqlite_master, so we compare what is actually *stored*, not what was
+    /// *executed*. Two normalisations apply:
+    ///   1. Room emits `${TABLE_NAME}` placeholders and substitutes the real
+    ///      table name before executing.
+    ///   2. SQLite strips `IF NOT EXISTS` from the CREATE statement it records
+    ///      in sqlite_master. Crucially this happens for BOTH Room-on-Android
+    ///      and GRDB-on-iOS (same SQLite engine), so a database built from these
+    ///      `IF NOT EXISTS` statements stores byte-identical schema text to what
+    ///      Android's newpipe.db actually contains on the device.
     private func resolved(_ createSql: String, table: String) -> String {
-        createSql.replacingOccurrences(of: "${TABLE_NAME}", with: table)
+        createSql
+            .replacingOccurrences(of: "${TABLE_NAME}", with: table)
+            .replacingOccurrences(of: " IF NOT EXISTS", with: "")
     }
 
     // MARK: Tests
