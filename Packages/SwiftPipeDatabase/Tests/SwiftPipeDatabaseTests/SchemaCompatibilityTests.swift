@@ -57,7 +57,7 @@ final class SchemaCompatibilityTests: XCTestCase {
                 .reduce(into: [:]) { acc, row in acc[row["name"]] = row["sql"] }
         }
 
-        for entity in schema.database.entities {
+        for entity in schema.entities {
             let expected = resolved(entity.createSql, table: entity.tableName)
             let actual = try XCTUnwrap(
                 masterByName[entity.tableName],
@@ -77,7 +77,7 @@ final class SchemaCompatibilityTests: XCTestCase {
                 .reduce(into: [:]) { acc, row in acc[row["name"]] = row["sql"] }
         }
 
-        for entity in schema.database.entities {
+        for entity in schema.entities {
             for index in entity.indices {
                 let expected = resolved(index.createSql, table: entity.tableName)
                 let actual = try XCTUnwrap(
@@ -98,8 +98,8 @@ final class SchemaCompatibilityTests: XCTestCase {
             try String.fetchOne(
                 db, sql: "SELECT identity_hash FROM room_master_table WHERE id = 42")
         }
-        XCTAssertEqual(storedHash, schema.database.identityHash)
-        XCTAssertEqual(AppDatabase.identityHash, schema.database.identityHash)
+        XCTAssertEqual(storedHash, schema.identityHash)
+        XCTAssertEqual(AppDatabase.identityHash, schema.identityHash)
     }
 
     func testUserVersionIsNine() throws {
@@ -109,7 +109,7 @@ final class SchemaCompatibilityTests: XCTestCase {
         let userVersion = try db.dbWriter.read { db in
             try Int.fetchOne(db, sql: "PRAGMA user_version")
         }
-        XCTAssertEqual(userVersion, schema.database.version)
+        XCTAssertEqual(userVersion, schema.version)
         XCTAssertEqual(userVersion, 9)
     }
 
