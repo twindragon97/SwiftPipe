@@ -5,7 +5,7 @@ public final class YoutubeMusicPremiumContentException: ContentNotAvailableExcep
         super.init("This video is a YouTube Music Premium video")
     }
 
-    public init(_ cause: Error) {
+    public override init(_ cause: Error) {
         super.init("This video is a YouTube Music Premium video", cause)
     }
 }
