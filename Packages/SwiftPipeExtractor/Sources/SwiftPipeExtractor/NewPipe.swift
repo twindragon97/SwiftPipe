@@ -35,8 +35,37 @@ public enum NewPipe {
         downloader
     }
 
-    // TODO(P1-core): getServices/getService(id)/getService(name)/getServiceByUrl
-    // arrive with StreamingService and ServiceList.
+    // MARK: Utils
+
+    public static func getServices() -> [StreamingService] {
+        ServiceList.all()
+    }
+
+    public static func getService(_ serviceId: Int) throws -> StreamingService {
+        guard let service = ServiceList.all().first(where: { $0.getServiceId() == serviceId })
+        else {
+            throw ExtractionException("There's no service with the id = \"\(serviceId)\"")
+        }
+        return service
+    }
+
+    public static func getService(_ serviceName: String) throws -> StreamingService {
+        guard let service = ServiceList.all().first(
+            where: { $0.getServiceInfo().getName() == serviceName })
+        else {
+            throw ExtractionException("There's no service with the name = \"\(serviceName)\"")
+        }
+        return service
+    }
+
+    public static func getServiceByUrl(_ url: String) throws -> StreamingService {
+        for service in ServiceList.all() {
+            if try service.getLinkTypeByUrl(url) != .NONE {
+                return service
+            }
+        }
+        throw ExtractionException("No service can handle the url = \"\(url)\"")
+    }
 
     // MARK: Localization
 

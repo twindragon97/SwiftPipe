@@ -1,6 +1,4 @@
 // Mirrors: extractor/src/main/java/org/schabi/newpipe/extractor/Info.java @ v0.26.3
-//
-// getService() lands together with ServiceList (NewPipe.getService).
 
 open class Info: CustomStringConvertible {
     private let serviceId: Int
@@ -59,6 +57,15 @@ open class Info: CustomStringConvertible {
 
     public func getServiceId() -> Int {
         serviceId
+    }
+
+    public func getService() -> StreamingService {
+        do {
+            return try NewPipe.getService(serviceId)
+        } catch {
+            // this should be unreachable, as serviceId certainly refers to a valid service
+            preconditionFailure("Info object has invalid service id")
+        }
     }
 
     public func getId() -> String {
