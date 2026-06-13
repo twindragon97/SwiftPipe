@@ -6,20 +6,14 @@
 import Foundation
 
 open class SubscriptionExtractor {
+    // Deviation: Java's four positional constructors collapse into one
+    // labeled initializer with defaults, since `init(_ cause: Error)` /
+    // `init(_ detailMessage: String?)` would collide with ExtractionException's
+    // `init(_:)` initializers. Call sites use labels:
+    // InvalidSourceException(), InvalidSourceException(detailMessage:),
+    // InvalidSourceException(cause:), InvalidSourceException(detailMessage:cause:).
     public final class InvalidSourceException: ParsingException {
-        public convenience init() {
-            self.init(nil, nil)
-        }
-
-        public convenience init(_ detailMessage: String?) {
-            self.init(detailMessage, nil)
-        }
-
-        public convenience init(_ cause: Error) {
-            self.init(nil, cause)
-        }
-
-        public init(_ detailMessage: String?, _ cause: Error?) {
+        public init(detailMessage: String? = nil, cause: Error? = nil) {
             super.init(
                 "Not a valid source" + (detailMessage == nil ? "" : " (\(detailMessage!))"),
                 cause)

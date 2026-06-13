@@ -14,7 +14,7 @@ public final class PlaylistInfo: ListInfo<StreamInfoItem> {
         case MIX_GENRE
     }
 
-    private init(_ serviceId: Int, _ linkHandler: ListLinkHandler, _ name: String) {
+    private override init(_ serviceId: Int, _ linkHandler: ListLinkHandler, _ name: String) {
         super.init(serviceId, linkHandler, name)
     }
 
@@ -85,7 +85,9 @@ public final class PlaylistInfo: ListInfo<StreamInfoItem> {
     private var uploaderName = ""
     private var subChannelUrl: String?
     private var subChannelName: String?
-    private var description: Description?
+    // Renamed from Java's `description` (see ChannelInfoItem) to avoid the
+    // CustomStringConvertible.description clash; getter/setter names unchanged.
+    private var descriptionValue: Description?
     private var banners: [Image] = []
     private var subChannelAvatars: [Image] = []
     private var thumbnails: [Image] = []
@@ -126,8 +128,8 @@ public final class PlaylistInfo: ListInfo<StreamInfoItem> {
     public func getStreamCount() -> Int64 { streamCount }
     public func setStreamCount(_ streamCount: Int64) { self.streamCount = streamCount }
 
-    public func getDescription() -> Description? { description }
-    public func setDescription(_ description: Description?) { self.description = description }
+    public func getDescription() -> Description? { descriptionValue }
+    public func setDescription(_ description: Description?) { self.descriptionValue = description }
 
     public func getPlaylistType() -> PlaylistType? { playlistType }
     public func setPlaylistType(_ playlistType: PlaylistType?) {

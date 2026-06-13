@@ -5,7 +5,9 @@ public final class PlaylistInfoItem: InfoItem {
     private var uploaderUrl: String?
     private var uploaderVerified = false
     private var streamCount: Int64 = 0
-    private var description: Description?
+    // Renamed from Java's `description` (see ChannelInfoItem) to avoid the
+    // CustomStringConvertible.description clash; getter/setter names unchanged.
+    private var descriptionValue: Description?
     private var playlistType: PlaylistInfo.PlaylistType?
 
     public init(_ serviceId: Int, _ url: String, _ name: String) {
@@ -26,8 +28,8 @@ public final class PlaylistInfoItem: InfoItem {
     public func getStreamCount() -> Int64 { streamCount }
     public func setStreamCount(_ streamCount: Int64) { self.streamCount = streamCount }
 
-    public func getDescription() -> Description? { description }
-    public func setDescription(_ description: Description?) { self.description = description }
+    public func getDescription() -> Description? { descriptionValue }
+    public func setDescription(_ description: Description?) { self.descriptionValue = description }
 
     public func getPlaylistType() -> PlaylistInfo.PlaylistType? { playlistType }
     public func setPlaylistType(_ playlistType: PlaylistInfo.PlaylistType?) {
