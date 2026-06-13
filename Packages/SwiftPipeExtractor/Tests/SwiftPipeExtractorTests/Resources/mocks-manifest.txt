@@ -3,3 +3,4 @@
 # bundle. One sub-path per line; lines starting with # are ignored.
 # Add a line here whenever a test class that uses recorded mocks is ported,
 # then run scripts/sync-mocks.sh.
+org/schabi/newpipe/extractor/services/youtube/search/youtubesearchextractor/all
