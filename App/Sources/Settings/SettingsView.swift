@@ -56,22 +56,22 @@ struct SettingsView: View {
     private func exportBackup() {
         isWorking = true
         Task {
-            let outcome = await Task.detached { () -> Result<URL, String> in
+            let outcome = await Task.detached { () -> Result<URL, AppError> in
                 do {
                     let name = "NewPipeData-\(Int(Date().timeIntervalSince1970)).zip"
                     let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
                     try Library.shared.exportBackup(to: url)
                     return .success(url)
                 } catch {
-                    return .failure(String(describing: error))
+                    return .failure(AppError(error))
                 }
             }.value
             isWorking = false
             switch outcome {
             case .success(let url):
                 shareItem = ShareItem(url: url)
-            case .failure(let message):
-                alertInfo = AlertInfo(title: "Export failed", message: message)
+            case .failure(let error):
+                alertInfo = AlertInfo(title: "Export failed", message: error.message)
             }
         }
     }
@@ -85,7 +85,7 @@ struct SettingsView: View {
         }
         isWorking = true
         Task {
-            let outcome = await Task.detached { () -> Result<String, String> in
+            let outcome = await Task.detached { () -> Result<String, AppError> in
                 let scoped = url.startAccessingSecurityScopedResource()
                 defer { if scoped { url.stopAccessingSecurityScopedResource() } }
                 do {
@@ -93,15 +93,15 @@ struct SettingsView: View {
                     let note = imported.isSchemaV9 ? "" : " (schema v\(imported.userVersion))"
                     return .success("Your library was restored from the backup\(note).")
                 } catch {
-                    return .failure(String(describing: error))
+                    return .failure(AppError(error))
                 }
             }.value
             isWorking = false
             switch outcome {
             case .success(let message):
                 alertInfo = AlertInfo(title: "Import complete", message: message)
-            case .failure(let message):
-                alertInfo = AlertInfo(title: "Import failed", message: message)
+            case .failure(let error):
+                alertInfo = AlertInfo(title: "Import failed", message: error.message)
             }
         }
     }
