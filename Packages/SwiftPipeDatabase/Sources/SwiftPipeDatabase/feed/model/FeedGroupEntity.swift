@@ -2,7 +2,7 @@
 
 import GRDB
 
-public struct FeedGroupEntity: FetchableRecord, PersistableRecord, Equatable {
+public struct FeedGroupEntity: FetchableRecord, MutablePersistableRecord, Equatable {
     public static let databaseTableName = "feed_group"
 
     /// uid of the synthetic "All" group.

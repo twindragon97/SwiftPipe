@@ -2,7 +2,7 @@
 
 import GRDB
 
-public struct PlaylistStreamEntity: FetchableRecord, PersistableRecord, Equatable {
+public struct PlaylistStreamEntity: FetchableRecord, MutablePersistableRecord, Equatable {
     public static let databaseTableName = "playlist_stream_join"
 
     public var playlistUid: Int64

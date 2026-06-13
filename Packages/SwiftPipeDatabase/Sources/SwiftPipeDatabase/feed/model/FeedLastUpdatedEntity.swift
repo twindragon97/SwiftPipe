@@ -3,7 +3,7 @@
 import Foundation
 import GRDB
 
-public struct FeedLastUpdatedEntity: FetchableRecord, PersistableRecord, Equatable {
+public struct FeedLastUpdatedEntity: FetchableRecord, MutablePersistableRecord, Equatable {
     public static let databaseTableName = "feed_last_updated"
 
     public var subscriptionId: Int64

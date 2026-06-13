@@ -2,7 +2,7 @@
 
 import GRDB
 
-public struct FeedEntity: FetchableRecord, PersistableRecord, Equatable {
+public struct FeedEntity: FetchableRecord, MutablePersistableRecord, Equatable {
     public static let databaseTableName = "feed"
 
     public var streamId: Int64

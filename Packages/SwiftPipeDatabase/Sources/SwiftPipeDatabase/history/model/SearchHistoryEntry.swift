@@ -3,7 +3,7 @@
 import Foundation
 import GRDB
 
-public struct SearchHistoryEntry: FetchableRecord, PersistableRecord, Equatable {
+public struct SearchHistoryEntry: FetchableRecord, MutablePersistableRecord, Equatable {
     public static let databaseTableName = "search_history"
 
     /// Stored as epoch-millis (UTC). Nullable to match Room.

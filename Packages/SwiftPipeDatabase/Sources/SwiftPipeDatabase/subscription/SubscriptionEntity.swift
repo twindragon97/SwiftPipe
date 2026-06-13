@@ -2,7 +2,7 @@
 
 import GRDB
 
-public struct SubscriptionEntity: FetchableRecord, PersistableRecord, Equatable {
+public struct SubscriptionEntity: FetchableRecord, MutablePersistableRecord, Equatable {
     public static let databaseTableName = "subscriptions"
 
     public var uid: Int64

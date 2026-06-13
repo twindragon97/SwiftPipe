@@ -32,6 +32,14 @@ public final class NewPipeDatabase {
         return config
     }
 
+    // MARK: DAOs (mirror of AppDatabase's DAO getters)
+
+    public var streamDAO: StreamDAO { StreamDAO(dbWriter) }
+    public var streamStateDAO: StreamStateDAO { StreamStateDAO(dbWriter) }
+    public var streamHistoryDAO: StreamHistoryDAO { StreamHistoryDAO(dbWriter) }
+    public var searchHistoryDAO: SearchHistoryDAO { SearchHistoryDAO(dbWriter) }
+    public var subscriptionDAO: SubscriptionDAO { SubscriptionDAO(dbWriter) }
+
     /// Creates the v9 schema on an empty database. A non-empty database with a
     /// different `user_version` is left untouched here — migrating an imported
     /// older database is handled by the import path (mirror of

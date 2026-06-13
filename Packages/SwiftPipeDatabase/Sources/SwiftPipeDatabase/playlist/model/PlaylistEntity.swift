@@ -2,7 +2,7 @@
 
 import GRDB
 
-public struct PlaylistEntity: FetchableRecord, PersistableRecord, Equatable {
+public struct PlaylistEntity: FetchableRecord, MutablePersistableRecord, Equatable {
     public static let databaseTableName = "playlists"
 
     public static let defaultThumbnailId: Int64 = -1

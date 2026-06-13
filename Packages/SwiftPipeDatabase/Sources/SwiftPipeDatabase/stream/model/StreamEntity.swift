@@ -9,7 +9,7 @@ import Foundation
 import GRDB
 import SwiftPipeExtractor
 
-public struct StreamEntity: FetchableRecord, PersistableRecord, Equatable {
+public struct StreamEntity: FetchableRecord, MutablePersistableRecord, Equatable {
     public static let databaseTableName = "streams"
 
     public var uid: Int64

@@ -2,7 +2,7 @@
 
 import GRDB
 
-public struct PlaylistRemoteEntity: FetchableRecord, PersistableRecord, Equatable {
+public struct PlaylistRemoteEntity: FetchableRecord, MutablePersistableRecord, Equatable {
     public static let databaseTableName = "remote_playlists"
 
     public var uid: Int64

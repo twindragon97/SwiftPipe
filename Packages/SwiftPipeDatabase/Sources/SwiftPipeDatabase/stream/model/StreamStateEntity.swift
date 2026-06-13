@@ -2,7 +2,7 @@
 
 import GRDB
 
-public struct StreamStateEntity: FetchableRecord, PersistableRecord, Equatable {
+public struct StreamStateEntity: FetchableRecord, MutablePersistableRecord, Equatable {
     public static let databaseTableName = "stream_state"
 
     /// Playback state is not saved if the progress is below this threshold (5 s).

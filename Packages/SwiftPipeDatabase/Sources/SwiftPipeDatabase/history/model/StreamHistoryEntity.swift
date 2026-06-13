@@ -3,7 +3,7 @@
 import Foundation
 import GRDB
 
-public struct StreamHistoryEntity: FetchableRecord, PersistableRecord, Equatable {
+public struct StreamHistoryEntity: FetchableRecord, MutablePersistableRecord, Equatable {
     public static let databaseTableName = "stream_history"
 
     public var streamUid: Int64

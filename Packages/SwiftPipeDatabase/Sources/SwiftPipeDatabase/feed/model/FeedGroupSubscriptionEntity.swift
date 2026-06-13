@@ -2,7 +2,7 @@
 
 import GRDB
 
-public struct FeedGroupSubscriptionEntity: FetchableRecord, PersistableRecord, Equatable {
+public struct FeedGroupSubscriptionEntity: FetchableRecord, MutablePersistableRecord, Equatable {
     public static let databaseTableName = "feed_group_subscription_join"
 
     public var feedGroupId: Int64
