@@ -4,8 +4,8 @@ import AVFoundation
 import SwiftPipeExtractor
 
 /// Resolves a YouTube watch URL to its HLS manifest (via the iOS InnerTube
-/// client) and plays it with AVPlayer. This is the Phase 2 milestone screen:
-/// search -> tap -> HLS plays.
+/// client) and plays it with AVPlayerViewController: native controls,
+/// Picture-in-Picture, lock-screen / Control Center info, background audio.
 struct VideoPlayerView: View {
     let item: SearchResultItem
 
@@ -18,11 +18,9 @@ struct VideoPlayerView: View {
                 ProgressView("Loading…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .ready(let player):
-                VideoPlayer(player: player)
+                SystemVideoPlayer(player: player)
                     .aspectRatio(16.0 / 9.0, contentMode: .fit)
                     .frame(maxWidth: .infinity)
-                    .onAppear { player.play() }
-                    .onDisappear { player.pause() }
             case .error(let message):
                 VStack(spacing: 12) {
                     Image(systemName: "exclamationmark.triangle")
@@ -40,7 +38,8 @@ struct VideoPlayerView: View {
         }
         .navigationTitle(item.title)
         .navigationBarTitleDisplayMode(.inline)
-        .task { await loader.load(item.url) }
+        .task { await loader.load(item) }
+        .onDisappear { loader.tearDown() }
     }
 }
 
@@ -55,18 +54,19 @@ private final class StreamLoader: ObservableObject {
 
     @Published private(set) var state: State = .idle
 
-    func load(_ watchUrl: String) async {
+    private var nowPlaying: NowPlayingController?
+
+    func load(_ item: SearchResultItem) async {
         guard case .idle = state else { return }
         state = .loading
 
-        // Use the .playback category so audio plays through the speaker (the
-        // default .soloAmbient category doesn't reliably play video audio) and
-        // keeps playing when the app is backgrounded.
+        // Use the .playback category so audio plays through the speaker, keeps
+        // playing in the background, and enables Picture-in-Picture.
         let session = AVAudioSession.sharedInstance()
         try? session.setCategory(.playback, mode: .moviePlayback)
         try? session.setActive(true)
 
-        let result = await Self.resolveHlsUrl(watchUrl)
+        let result = await Self.resolveHlsUrl(item.url)
         switch result {
         case .success(let hlsUrl):
             // The HLS manifest comes from the iOS InnerTube client, so present
@@ -78,11 +78,26 @@ private final class StreamLoader: ObservableObject {
                         "User-Agent": Self.iosUserAgent
                     ]
                 ])
-            let playerItem = AVPlayerItem(asset: asset)
-            state = .ready(AVPlayer(playerItem: playerItem))
+            let player = AVPlayer(playerItem: AVPlayerItem(asset: asset))
+            nowPlaying = NowPlayingController(
+                player: player,
+                title: item.title,
+                artist: item.uploader,
+                artworkURL: item.thumbnailURL)
+            state = .ready(player)
+            player.play()
         case .failure(let error):
             state = .error(error.message)
         }
+    }
+
+    func tearDown() {
+        nowPlaying?.tearDown()
+        nowPlaying = nil
+        if case .ready(let player) = state {
+            player.pause()
+        }
+        try? AVAudioSession.sharedInstance().setActive(false)
     }
 
     private static let iosUserAgent =
