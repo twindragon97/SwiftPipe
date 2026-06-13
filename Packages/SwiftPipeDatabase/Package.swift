@@ -12,6 +12,8 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0"),
+        // Reads/writes the NewPipeData backup .zip (FileManager.zipItem/unzipItem).
+        .package(url: "https://github.com/weichsel/ZIPFoundation.git", from: "0.9.0"),
         // Local mirror of NewPipeExtractor — StreamEntity stores its StreamType,
         // exactly as Android's app module depends on the extractor.
         .package(path: "../SwiftPipeExtractor"),
@@ -21,6 +23,7 @@ let package = Package(
             name: "SwiftPipeDatabase",
             dependencies: [
                 .product(name: "GRDB", package: "GRDB.swift"),
+                .product(name: "ZIPFoundation", package: "ZIPFoundation"),
                 .product(name: "SwiftPipeExtractor", package: "SwiftPipeExtractor"),
             ]
         ),
