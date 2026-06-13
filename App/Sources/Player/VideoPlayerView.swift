@@ -43,6 +43,9 @@ struct VideoPlayerView: View {
         }
         .navigationTitle(model.currentTitle)
         .navigationBarTitleDisplayMode(.inline)
+        // Hide the tab bar while watching, so the Search/History switcher
+        // (a top bar on iPadOS) doesn't sit over the player.
+        .toolbar(.hidden, for: .tabBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
