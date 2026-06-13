@@ -30,6 +30,7 @@ final class SearchViewModel: ObservableObject {
             switch result {
             case .success(let items):
                 self.state = items.isEmpty ? .empty : .loaded(items)
+                Library.shared.recordSearch(trimmed)
             case .failure(let error):
                 self.state = .error(error.message)
             }
@@ -60,9 +61,12 @@ final class SearchViewModel: ObservableObject {
         let thumbnailURL = item.getThumbnails().last.flatMap { URL(string: $0.getUrl()) }
         return SearchResultItem(
             id: item.getUrl(),
+            serviceId: item.getServiceId(),
             title: item.getName(),
             uploader: item.getUploaderName() ?? "",
+            durationSeconds: item.getDuration(),
             durationText: DurationFormatter.string(fromSeconds: item.getDuration()),
-            thumbnailURL: thumbnailURL)
+            thumbnailURL: thumbnailURL,
+            streamType: item.getStreamType())
     }
 }

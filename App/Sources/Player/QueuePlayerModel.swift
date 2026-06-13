@@ -1,6 +1,7 @@
 import Foundation
 import AVFoundation
 import SwiftPipeExtractor
+import SwiftPipeDatabase
 
 /// Drives playback through a queue of search results: one reused AVPlayer
 /// whose current item is replaced as the queue advances, autoplay on
@@ -36,6 +37,7 @@ final class QueuePlayerModel: ObservableObject {
     private var index = 0
     private var nowPlaying: NowPlayingController?
     private var endObserver: NSObjectProtocol?
+    private var progressObserver: Any?
     private var loadToken = 0
 
     func start(_ request: PlaybackRequest) {
@@ -61,6 +63,21 @@ final class QueuePlayerModel: ObservableObject {
             Task { @MainActor in
                 guard let self, endedItem === self.player.currentItem else { return }
                 self.next()
+            }
+        }
+
+        // Persist the resume position every few seconds so playback can continue
+        // where it left off (and so finished videos get marked as such).
+        progressObserver = player.addPeriodicTimeObserver(
+            forInterval: CMTime(seconds: 5, preferredTimescale: 1), queue: .main
+        ) { [weak self] time in
+            Task { @MainActor in
+                guard let self, self.items.indices.contains(self.index) else { return }
+                guard time.seconds.isFinite else { return }
+                let item = self.items[self.index]
+                let millis = Int64(time.seconds * 1000)
+                guard millis > 0 else { return }
+                Self.saveProgress(item: item, millis: millis)
             }
         }
 
@@ -95,6 +112,9 @@ final class QueuePlayerModel: ObservableObject {
         if let endObserver {
             NotificationCenter.default.removeObserver(endObserver)
         }
+        if let progressObserver {
+            player.removeTimeObserver(progressObserver)
+        }
         player.pause()
         let nowPlaying = self.nowPlaying
         Task { @MainActor in
@@ -117,18 +137,21 @@ final class QueuePlayerModel: ObservableObject {
         let token = loadToken
 
         Task { [weak self] in
-            let result = await Self.resolveHlsUrl(item.url)
+            let result = await Self.prepare(item)
             guard let self, token == self.loadToken else { return }
             switch result {
-            case .success(let url):
+            case .success(let resolved):
                 let asset = AVURLAsset(
-                    url: url,
+                    url: resolved.url,
                     options: [
                         "AVURLAssetHTTPHeaderFieldsKey": ["User-Agent": Self.iosUserAgent]
                     ])
                 let playerItem = AVPlayerItem(asset: asset)
                 playerItem.preferredMaximumResolution = self.quality.maxResolution
                 self.player.replaceCurrentItem(with: playerItem)
+                if let resumeMillis = resolved.resumeMillis, resumeMillis > 0 {
+                    self.player.seek(to: CMTime(value: resumeMillis, timescale: 1000))
+                }
                 self.player.play()
                 self.state = .playing
             case .failure(let error):
@@ -137,16 +160,31 @@ final class QueuePlayerModel: ObservableObject {
         }
     }
 
+    /// Saves the resume position for an item. Fire-and-forget on a background
+    /// task; HistoryRecordManager only persists it when it crosses the validity
+    /// threshold.
+    private static func saveProgress(item: SearchResultItem, millis: Int64) {
+        Task.detached(priority: .utility) {
+            try? Library.shared.history.saveStreamState(
+                StreamEntity(item: item), progressMillis: millis)
+        }
+    }
+
     private static let iosUserAgent =
         "com.google.ios.youtube/21.03.2(iPhone16,2; U; CPU iOS 18_7_2 like Mac OS X; GB)"
 
-    private static func resolveHlsUrl(
-        _ watchUrl: String
-    ) async -> Result<URL, AppError> {
+    private struct Resolved {
+        let url: URL
+        let resumeMillis: Int64?
+    }
+
+    /// Resolves the HLS manifest, records the view in watch history, and returns
+    /// any saved resume position — all off the main thread.
+    private static func prepare(_ item: SearchResultItem) async -> Result<Resolved, AppError> {
         await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
                 do {
-                    let extractor = try ServiceList.YouTube.getStreamExtractor(watchUrl)
+                    let extractor = try ServiceList.YouTube.getStreamExtractor(item.url)
                     try extractor.fetchPage()
                     let hls = try extractor.getHlsUrl()
                     guard !hls.isEmpty, let url = URL(string: hls) else {
@@ -154,7 +192,17 @@ final class QueuePlayerModel: ObservableObject {
                             AppError("No HLS stream available for this video.")))
                         return
                     }
-                    continuation.resume(returning: .success(url))
+
+                    // Record the view and look up a resume position.
+                    var resumeMillis: Int64?
+                    let stream = StreamEntity(item: item)
+                    if let streamId = try? Library.shared.history.onViewed(stream) {
+                        resumeMillis = (try? Library.shared.history.loadStreamState(
+                            streamId: streamId, durationInSeconds: item.durationSeconds))?.progressMillis
+                    }
+
+                    continuation.resume(returning: .success(
+                        Resolved(url: url, resumeMillis: resumeMillis)))
                 } catch {
                     continuation.resume(returning: .failure(AppError(error)))
                 }

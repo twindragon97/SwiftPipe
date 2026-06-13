@@ -1,6 +1,6 @@
 // Mirrors: extractor/src/main/java/org/schabi/newpipe/extractor/stream/StreamType.java @ v0.26.3
 
-public enum StreamType {
+public enum StreamType: Sendable {
     /// Internal placeholder: the stream type was not checked yet.
     case NONE
     /// A normal video stream, usually with audio.

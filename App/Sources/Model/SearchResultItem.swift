@@ -1,14 +1,19 @@
 import Foundation
+import SwiftPipeExtractor
 
 /// A Sendable snapshot of a YouTube video search result, mapped off the
 /// extractor's (non-Sendable) StreamInfoItem on a background thread before
-/// being handed to the main actor.
+/// being handed to the main actor. Carries enough to rebuild a database
+/// StreamEntity for watch-history recording.
 struct SearchResultItem: Identifiable, Sendable, Hashable {
     let id: String          // the watch URL, unique per result
+    let serviceId: Int
     let title: String
     let uploader: String
+    let durationSeconds: Int64
     let durationText: String
     let thumbnailURL: URL?
+    let streamType: StreamType
 
     var url: String { id }
 }
