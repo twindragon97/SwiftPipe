@@ -40,6 +40,8 @@ struct VideoPlayerView: View {
         .navigationTitle(model.currentTitle)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { model.start(request) }
-        .onDisappear { model.tearDown() }
+        // No onDisappear teardown: it also fires when AVPlayerViewController
+        // covers this view with its fullscreen presentation. Cleanup happens
+        // in QueuePlayerModel.deinit (real pop only).
     }
 }

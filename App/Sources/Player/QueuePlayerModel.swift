@@ -78,16 +78,21 @@ final class QueuePlayerModel: ObservableObject {
         loadCurrent()
     }
 
-    func tearDown() {
+    // Cleanup runs in deinit (when the view is truly popped) rather than in
+    // onDisappear: AVPlayerViewController's fullscreen presentation makes
+    // SwiftUI fire onDisappear on the underlying view, and tearing the player
+    // down there left a black screen on return. deinit only fires when the
+    // @StateObject is actually released.
+    deinit {
         if let endObserver {
             NotificationCenter.default.removeObserver(endObserver)
-            self.endObserver = nil
         }
-        nowPlaying?.tearDown()
-        nowPlaying = nil
         player.pause()
-        player.replaceCurrentItem(with: nil)
-        try? AVAudioSession.sharedInstance().setActive(false)
+        let nowPlaying = self.nowPlaying
+        Task { @MainActor in
+            nowPlaying?.tearDown()
+            try? AVAudioSession.sharedInstance().setActive(false)
+        }
     }
 
     private func loadCurrent() {
