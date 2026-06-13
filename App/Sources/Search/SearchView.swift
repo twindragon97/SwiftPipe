@@ -40,14 +40,14 @@ struct SearchView: View {
                 systemImage: "exclamationmark.triangle",
                 description: message)
         case .loaded(let items):
-            List(items) { item in
-                NavigationLink(value: item) {
+            List(Array(items.enumerated()), id: \.element.id) { offset, item in
+                NavigationLink(value: PlaybackRequest(items: items, index: offset)) {
                     SearchResultRow(item: item)
                 }
             }
             .listStyle(.plain)
-            .navigationDestination(for: SearchResultItem.self) { item in
-                VideoPlayerView(item: item)
+            .navigationDestination(for: PlaybackRequest.self) { request in
+                VideoPlayerView(request: request)
             }
         }
     }

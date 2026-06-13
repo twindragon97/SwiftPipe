@@ -4,25 +4,51 @@ import MediaPlayer
 import UIKit
 
 /// Publishes the playing item to the system Now Playing center (lock screen,
-/// Control Center) and wires the remote commands (play/pause, ±15s, scrub).
-/// Owned by the player screen; call `tearDown()` when leaving.
+/// Control Center) and wires the remote commands (play/pause, ±15s, scrub,
+/// next/previous track). Bound once to a reused AVPlayer; call `update` per
+/// track and `tearDown()` when leaving.
 @MainActor
 final class NowPlayingController {
     private let player: AVPlayer
-    private let title: String
-    private let artist: String
+    private let onPrevious: () -> Void
+    private let onNext: () -> Void
     private var timeObserver: Any?
     private var artworkTask: Task<Void, Never>?
+    private var title = ""
+    private var artist = ""
 
-    init(player: AVPlayer, title: String, artist: String, artworkURL: URL?) {
+    init(
+        player: AVPlayer,
+        onPrevious: @escaping () -> Void,
+        onNext: @escaping () -> Void
+    ) {
         self.player = player
-        self.title = title
-        self.artist = artist
-
-        setInitialInfo()
+        self.onPrevious = onPrevious
+        self.onNext = onNext
         configureRemoteCommands()
         observePlaybackTime()
+    }
+
+    /// Refresh the metadata shown for the current track.
+    func update(title: String, artist: String, artworkURL: URL?) {
+        self.title = title
+        self.artist = artist
+        var info: [String: Any] = [
+            MPMediaItemPropertyTitle: title,
+            MPMediaItemPropertyArtist: artist,
+            MPNowPlayingInfoPropertyPlaybackRate: Double(player.rate),
+        ]
+        if let duration = player.currentItem?.duration, duration.isNumeric {
+            info[MPMediaItemPropertyPlaybackDuration] = duration.seconds
+        }
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
         loadArtwork(from: artworkURL)
+    }
+
+    /// Enable/disable the next/previous commands based on queue position.
+    func setQueueCommands(canPrevious: Bool, canNext: Bool) {
+        MPRemoteCommandCenter.shared().previousTrackCommand.isEnabled = canPrevious
+        MPRemoteCommandCenter.shared().nextTrackCommand.isEnabled = canNext
     }
 
     func tearDown() {
@@ -38,19 +64,9 @@ final class NowPlayingController {
         center.skipForwardCommand.removeTarget(nil)
         center.skipBackwardCommand.removeTarget(nil)
         center.changePlaybackPositionCommand.removeTarget(nil)
+        center.previousTrackCommand.removeTarget(nil)
+        center.nextTrackCommand.removeTarget(nil)
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-    }
-
-    private func setInitialInfo() {
-        var info: [String: Any] = [
-            MPMediaItemPropertyTitle: title,
-            MPMediaItemPropertyArtist: artist,
-            MPNowPlayingInfoPropertyPlaybackRate: Double(player.rate),
-        ]
-        if let duration = player.currentItem?.duration, duration.isNumeric {
-            info[MPMediaItemPropertyPlaybackDuration] = duration.seconds
-        }
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
 
     private func configureRemoteCommands() {
@@ -101,6 +117,15 @@ final class NowPlayingController {
             self.updatePlaybackState()
             return .success
         }
+
+        center.previousTrackCommand.addTarget { [weak self] _ in
+            self?.onPrevious()
+            return .success
+        }
+        center.nextTrackCommand.addTarget { [weak self] _ in
+            self?.onNext()
+            return .success
+        }
     }
 
     private func observePlaybackTime() {
@@ -108,16 +133,13 @@ final class NowPlayingController {
             forInterval: CMTime(seconds: 1, preferredTimescale: 1),
             queue: .main
         ) { [weak self] _ in
-            // The closure is delivered on the main queue; hop onto the main
-            // actor to touch the actor-isolated player/state.
             Task { @MainActor in self?.updatePlaybackState() }
         }
     }
 
     private func updatePlaybackState() {
         var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
-        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] =
-            player.currentTime().seconds
+        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player.currentTime().seconds
         info[MPNowPlayingInfoPropertyPlaybackRate] = Double(player.rate)
         if let duration = player.currentItem?.duration, duration.isNumeric {
             info[MPMediaItemPropertyPlaybackDuration] = duration.seconds
@@ -126,6 +148,7 @@ final class NowPlayingController {
     }
 
     private func loadArtwork(from url: URL?) {
+        artworkTask?.cancel()
         guard let url else { return }
         artworkTask = Task { [weak self] in
             guard let (data, _) = try? await URLSession.shared.data(from: url),
