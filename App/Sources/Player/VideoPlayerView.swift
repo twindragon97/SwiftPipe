@@ -1,5 +1,6 @@
 import SwiftUI
 import AVKit
+import AVFoundation
 import SwiftPipeExtractor
 
 /// Resolves a YouTube watch URL to its HLS manifest (via the iOS InnerTube
@@ -57,6 +58,13 @@ private final class StreamLoader: ObservableObject {
     func load(_ watchUrl: String) async {
         guard case .idle = state else { return }
         state = .loading
+
+        // Use the .playback category so audio plays through the speaker (the
+        // default .soloAmbient category doesn't reliably play video audio) and
+        // keeps playing when the app is backgrounded.
+        let session = AVAudioSession.sharedInstance()
+        try? session.setCategory(.playback, mode: .moviePlayback)
+        try? session.setActive(true)
 
         let result = await Self.resolveHlsUrl(watchUrl)
         switch result {
