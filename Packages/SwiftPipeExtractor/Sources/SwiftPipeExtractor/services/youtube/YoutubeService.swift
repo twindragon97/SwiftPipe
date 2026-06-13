@@ -36,8 +36,7 @@ public final class YoutubeService: StreamingService {
     }
 
     public override func getStreamExtractor(_ linkHandler: LinkHandler) throws -> StreamExtractor {
-        // TODO(9e): return YoutubeStreamExtractor(self, linkHandler)
-        preconditionFailure("YoutubeStreamExtractor not ported yet (9e)")
+        YoutubeStreamExtractor(self, linkHandler)
     }
 
     public override func getChannelExtractor(
